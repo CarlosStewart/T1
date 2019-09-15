@@ -4,6 +4,7 @@
 #define DEGREES AbstractMotor::encoderUnits::degrees
 
 // MOTORS
+////////////////
 const int DLF_PORT = 1;
 const bool DLF_REV = true;
 
@@ -16,14 +17,23 @@ const bool DLB_REV = true;
 const int DRB_PORT = 4;
 const bool DRB_REV = false;
 
+////////////////
 const int TILT_PORT = 5;
 const bool TILT_REV = false;
+
+////////////////
+const int ROLLL_PORT = 6;
+const bool ROLLL_REV = false;
+
+const int ROLLR_PORT = 7;
+const bool ROLLR_REV = true;
 
 // CONTROLS
 #define BTN_TILT_UP ControllerDigital::L1
 #define BTN_TILT_DOWN ControllerDigital::L2
-#define BTN_TILT_T1 ControllerDigital::A
+#define BTN_TILT_LOW ControllerDigital::A
+#define BTN_TILT_MID ControllerDigital::B
+#define BTN_TILT_HIGH ControllerDigital::X
+#define BTN_ROLL_TOGGLE ControllerDigital::R1
 
 // VALUES
-const int TILT_UP = 200;
-const int TILT_DOWN = 100;
