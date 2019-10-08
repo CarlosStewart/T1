@@ -36,4 +36,7 @@ const bool ROLLR_REV = true;
 #define BTN_TILT_HIGH ControllerDigital::X
 #define BTN_ROLL_TOGGLE ControllerDigital::R1
 
+// SENSORS
+const char TP_PORT = 'G';
+
 // VALUES

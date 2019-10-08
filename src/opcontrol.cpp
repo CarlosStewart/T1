@@ -40,44 +40,48 @@ const int TILT_LOW = 20;   // height for low towers
 const int TILT_MED = 40;   // height for medium towers
 const int TILT_HIGH = 60;  // height for tallest tower
 // definition of buttons
-ControllerButton tiltUpBTN(BTN_TILT_UP);
-ControllerButton tiltDownBTN(BTN_TILT_DOWN);
-ControllerButton tiltLowBTN(BTN_TILT_LOW);
-ControllerButton tiltMedBTN(BTN_TILT_MID);
-ControllerButton tiltHighBTN(BTN_TILT_HIGH);
+ControllerButton btnUp(BTN_TILT_UP);
+ControllerButton btnDown(BTN_TILT_DOWN);
+ControllerButton btnLow(BTN_TILT_LOW);
+ControllerButton btnMed(BTN_TILT_MID);
+ControllerButton btnHigh(BTN_TILT_HIGH);
+Potentiometer pot(TP_PORT);
 auto controller = AsyncControllerFactory::posPID(
-    boolToSign(TILT_REV) * TILT_PORT, Potentiometer('G'), 0.001, 0.0, 0.0001);
+    boolToSign(TILT_REV) * TILT_PORT, pot, 0.001, 0.0, 0.0001);
 
 // funtion to be run in opcontrol() to control the tilter
 void controlTilt() {
-  if (tiltUpBTN.changedToPressed()) { // tilt up if button is pressed
+  if (btnUp.changedToPressed()) { // tilt up if button is pressed
     controller.setTarget(TILT_UP);
     controller.flipDisable(false);
-  } else if (tiltUpBTN.changedToReleased()) { // stop
+  } else if (btnUp.changedToReleased()) { // stop
     controller.flipDisable(true);
-  } else if (tiltDownBTN.changedToPressed()) { // tilt down if button is pressed
+  } else if (btnDown.changedToPressed()) { // tilt down if button is pressed
     controller.setTarget(TILT_DOWN);
     controller.flipDisable(false);
-  } else if (tiltDownBTN.changedToReleased()) { // stop
+  } else if (btnDown.changedToReleased()) { // stop
     controller.flipDisable(true);
-  } else if (tiltLowBTN.changedToPressed()) { // tilt to low tower height when
-                                              // button is pressed
+  } else if (btnLow.changedToPressed()) { // tilt to low tower height when
+                                          // button is pressed
     controller.setTarget(TILT_LOW);
     controller.flipDisable(false);
-  } else if (tiltLowBTN.changedToReleased()) { // stop
+  } else if (btnLow.changedToReleased()) { // stop
     controller.flipDisable(true);
-  } else if (tiltMedBTN.changedToPressed()) { // tilt to medium tower height
-                                              // when button is pressed
+  } else if (btnMed.changedToPressed()) { // tilt to medium tower height
+                                          // when button is pressed
     controller.setTarget(TILT_MED);
     controller.flipDisable(false);
-  } else if (tiltMedBTN.changedToReleased()) { // stop
+  } else if (btnMed.changedToReleased()) { // stop
     controller.flipDisable(true);
-  } else if (tiltHighBTN.changedToPressed()) { // tilt to high tower height when
-                                               // button is pressed
+  } else if (btnHigh.changedToPressed()) { // tilt to high tower height when
+                                           // button is pressed
     controller.setTarget(TILT_HIGH);
     controller.flipDisable(false);
-  } else if (tiltHighBTN.changedToReleased()) { // stop
+  } else if (btnHigh.changedToReleased()) { // stop
     controller.flipDisable(true);
+  } else {
+    controller.setTarget(pot.get());
+    controller.flipDisable(false);
   }
 }
 } // namespace tilt
