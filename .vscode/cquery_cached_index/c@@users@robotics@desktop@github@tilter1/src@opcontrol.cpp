@@ -87,6 +87,40 @@ void controlTilt() {
 } // namespace tilt
 
 /////////////////////////////////////
+//       Tilter Control mkII       //
+/////////////////////////////////////
+namespace tilt2 {
+// preset heights
+enum heights { up = 20, down = 100, low = 80, med = 60, high = 40 };
+// definition of buttons
+ControllerButton btnUp(BTN_TILT_UP);
+ControllerButton btnDown(BTN_TILT_DOWN);
+ControllerButton btnLow(BTN_TILT_LOW);
+ControllerButton btnMed(BTN_TILT_MID);
+ControllerButton btnHigh(BTN_TILT_HIGH);
+Potentiometer pot(TP_PORT);
+// definition of controller
+auto controller = AsyncControllerFactory::posPID(
+    boolToSign(TILT_REV) * TILT_PORT, pot, 0.001, 0.0, 0.0001);
+
+// funtion to be run in opcontrol() to control the tilter
+void controlTilt() {
+  if (btnUp.isPressed())
+    controller.setTarget(up);
+  else if (btnDown.isPressed())
+    controller.setTarget(down);
+  else if (btnLow.isPressed())
+    controller.setTarget(low);
+  else if (btnMed.isPressed())
+    controller.setTarget(med);
+  else if (btnHigh.isPressed())
+    controller.setTarget(high);
+  else
+    controller.setTarget(pot.get());
+}
+} // namespace tilt2
+
+/////////////////////////////////////
 //          Roller Control         //
 /////////////////////////////////////
 namespace roll {
@@ -107,7 +141,7 @@ void controlRoll() {
 void opcontrol() {
   pros::Task taskDrive(drivetrain::controlDrive);
   while (true) {
-    tilt::controlTilt();
+    tilt2::controlTilt();
     roll::controlRoll();
     pros::delay(20);
   }
