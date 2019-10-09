@@ -19,7 +19,7 @@ const bool DRB_REV = false;
 
 ////////////////
 const int TILT_PORT = 3;
-const bool TILT_REV = false;
+const bool TILT_REV = true;
 
 ////////////////
 const int ROLLL_PORT = 19;
