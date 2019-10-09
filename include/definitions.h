@@ -5,27 +5,27 @@
 
 // MOTORS
 ////////////////
-const int DLF_PORT = 1;
+const int DLF_PORT = 20;
 const bool DLF_REV = true;
 
 const int DRF_PORT = 2;
 const bool DRF_REV = false;
 
-const int DLB_PORT = 3;
+const int DLB_PORT = 10;
 const bool DLB_REV = true;
 
-const int DRB_PORT = 4;
+const int DRB_PORT = 1;
 const bool DRB_REV = false;
 
 ////////////////
-const int TILT_PORT = 5;
+const int TILT_PORT = 3;
 const bool TILT_REV = false;
 
 ////////////////
-const int ROLLL_PORT = 6;
+const int ROLLL_PORT = 19;
 const bool ROLLL_REV = false;
 
-const int ROLLR_PORT = 7;
+const int ROLLR_PORT = 11;
 const bool ROLLR_REV = true;
 
 // CONTROLS
