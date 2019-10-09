@@ -13,11 +13,20 @@ using namespace okapi;
  */
 void autonomous() {
   // sets up chassis for easy drivetrain control in autonomous
-  auto myChassis = ChassisControllerFactory::create(
+  auto drive = ChassisControllerFactory::create(
       boolToSign(DLF_REV) * DLF_PORT, boolToSign(DRF_REV) * DRF_PORT,
       boolToSign(DRB_REV) * DRB_PORT, boolToSign(DLB_REV) * DLB_PORT,
       IterativePosPIDController::Gains{0.001, 0, 0.0001},
       IterativePosPIDController::Gains{0.001, 0, 0.0001},
       IterativePosPIDController::Gains{0.001, 0, 0.0001}, BLUE,
-      {1000, 2}); //{motor deg to m, motor deg to bot deg}
+      {0.00028222206, 2}); //{motor deg to m, motor deg to bot deg}
+
+  // FOR TESTING ONLY
+  Controller con;
+  while (true) {
+    drive.arcade(con.getAnalog(ControllerAnalog::leftY),
+                 con.getAnalog(ControllerAnalog::rightX));
+    pros::lcd::clear_line(1);
+    pros::lcd::print();
+  }
 }
