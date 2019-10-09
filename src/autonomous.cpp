@@ -1,5 +1,5 @@
 #include "main.h"
-
+using namespace okapi;
 /**
  * Runs the user autonomous code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
@@ -11,4 +11,13 @@
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+  // sets up chassis for easy drivetrain control in autonomous
+  auto myChassis = ChassisControllerFactory::create(
+      boolToSign(DLF_REV) * DLF_PORT, boolToSign(DRF_REV) * DRF_PORT,
+      boolToSign(DRB_REV) * DRB_PORT, boolToSign(DLB_REV) * DLB_PORT,
+      IterativePosPIDController::Gains{0.001, 0, 0.0001},
+      IterativePosPIDController::Gains{0.001, 0, 0.0001},
+      IterativePosPIDController::Gains{0.001, 0, 0.0001}, BLUE,
+      {1000, 2}); //{motor deg to m, motor deg to bot deg}
+}
