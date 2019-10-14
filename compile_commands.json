@@ -28,10 +28,10 @@
             "-fdiagnostics-color",
             "--std=gnu++17",
             "-o",
-            "C:/Users/porsha1/AppData/Local/Temp/tmpe6qi3u2u/opcontrol.cpp.o",
+            "bin/opcontrol.cpp.o",
             "src\\opcontrol.cpp"
         ],
-        "directory": "J:\\GitHub\\T1",
+        "directory": "C:\\Users\\Robotics\\Desktop\\GitHub\\Tilter1",
         "file": "src\\opcontrol.cpp"
     },
     {
@@ -63,11 +63,11 @@
             "-fdiagnostics-color",
             "--std=gnu++17",
             "-o",
-            "C:/Users/porsha1/AppData/Local/Temp/tmpe6qi3u2u/initialize.cpp.o",
-            "src\\initialize.cpp"
+            "bin/autonomous.cpp.o",
+            "src\\autonomous.cpp"
         ],
-        "directory": "J:\\GitHub\\T1",
-        "file": "src\\initialize.cpp"
+        "directory": "C:\\Users\\Robotics\\Desktop\\GitHub\\Tilter1",
+        "file": "src\\autonomous.cpp"
     },
     {
         "arguments": [
@@ -98,10 +98,10 @@
             "-fdiagnostics-color",
             "--std=gnu++17",
             "-o",
-            "C:/Users/porsha1/AppData/Local/Temp/tmpe6qi3u2u/autonomous.cpp.o",
-            "src\\autonomous.cpp"
+            "bin/initialize.cpp.o",
+            "src\\initialize.cpp"
         ],
-        "directory": "J:\\GitHub\\T1",
-        "file": "src\\autonomous.cpp"
+        "directory": "C:\\Users\\Robotics\\Desktop\\GitHub\\Tilter1",
+        "file": "src\\initialize.cpp"
     }
 ]

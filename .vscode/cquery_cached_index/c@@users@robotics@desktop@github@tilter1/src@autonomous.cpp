@@ -23,10 +23,21 @@ void autonomous() {
 
   // FOR TESTING ONLY
   Controller con;
+  ControllerButton btnForward(ControllerDigital::up);
+  ControllerButton btnTurnRight90(ControllerDigital::right);
   while (true) {
+
     drive.arcade(con.getAnalog(ControllerAnalog::leftY),
                  con.getAnalog(ControllerAnalog::rightX));
+
     pros::lcd::clear_line(1);
-    pros::lcd::print();
+    pros::lcd::print(1, "Sensors: %f", drive.getSensorVals());
+
+    if (btnForward.changedToPressed()){
+      drive.moveDistance(24_in);
+    }
+    else if(btnTurnRight90.changedToPressed()){
+      drive.turnAngle(90_deg);
+    }
   }
 }
