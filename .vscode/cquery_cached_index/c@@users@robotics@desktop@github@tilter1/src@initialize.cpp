@@ -7,6 +7,11 @@
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
+  static lv_style_t background_style;
+  lv_style_copy(&background_style, &lv_style_plain);
+  background_style.body.main_color = LV_COLOR_HEX(0xa600ff);
+  background_style.body.grad_color = LV_COLOR_HEX(0xa600ff);
+
   static lv_style_t tabview_indic_style;
   tabview_indic_style.body.border.color = LV_COLOR_WHITE;
   tabview_indic_style.body.border.width = 4;
@@ -33,13 +38,8 @@ void initialize() {
   tabview_btn_pr_style.text.color = LV_COLOR_WHITE;
 
   lv_obj_t *tabview_windows = lv_tabview_create(lv_scr_act(), NULL);
-  lv_obj_t *tab_drive = lv_tabview_add_tab(tabview_windows, "Drive");
-  lv_obj_t *tab_tilt = lv_tabview_add_tab(tabview_windows, "Tilt");
-  lv_obj_t *tab_rollers = lv_tabview_add_tab(tabview_windows, "Rollers");
-
-  static lv_style_t btn_rel_style;
-  lv_style_copy(&btn_rel_style, &tabview_btn_tgl_style);
-  btn_rel_style.body.radius = LV_RADIUS_CIRCLE;
+  lv_obj_t *tab_auton = lv_tabview_add_tab(tabview_windows, "Auton");
+  lv_obj_t *tab_values = lv_tabview_add_tab(tabview_windows, "Values");
 
   lv_tabview_set_style(tabview_windows, LV_TABVIEW_STYLE_INDIC,
                        &tabview_indic_style);
@@ -52,25 +52,74 @@ void initialize() {
   lv_tabview_set_style(tabview_windows, LV_TABVIEW_STYLE_BTN_TGL_PR,
                        &tabview_btn_pr_style);
 
-  lv_obj_t *btn_drive_up = lv_btn_create(tab_drive, NULL);
-  lv_btn_set_style(btn_drive_up, LV_BTN_STYLE_REL, &btn_rel_style);
-  lv_obj_set_size(btn_drive_up, 50, 50);
-  lv_obj_set_pos(btn_drive_up, 207, 10);
-  lv_obj_t *btn_drive_down = lv_btn_create(tab_drive, btn_drive_up);
-  lv_obj_set_y(btn_drive_down, 120);
-  lv_obj_t *btn_drive_left = lv_btn_create(tab_drive, btn_drive_up);
-  lv_obj_set_pos(btn_drive_left, 152, 65);
-  lv_obj_t *btn_drive_right = lv_btn_create(tab_drive, btn_drive_left);
-  lv_obj_set_x(btn_drive_right, 262);
+  static lv_style_t switch_team_blue_style;
+  lv_style_copy(&switch_team_blue_style, &lv_style_plain);
+  switch_team_blue_style.body.main_color = LV_COLOR_BLUE;
+  switch_team_blue_style.body.grad_color = LV_COLOR_BLUE;
+  switch_team_blue_style.body.radius = LV_RADIUS_CIRCLE;
+  switch_team_blue_style.body.border.color = LV_COLOR_WHITE;
+  switch_team_blue_style.body.border.part = LV_BORDER_FULL;
+  switch_team_blue_style.body.border.width = 2;
 
-  lv_obj_t *label_drive_up = lv_label_create(btn_drive_up, NULL);
-  lv_label_set_text(label_drive_up, SYMBOL_UP);
-  lv_obj_t *label_drive_down = lv_label_create(btn_drive_down, NULL);
-  lv_label_set_text(label_drive_down, SYMBOL_DOWN);
-  lv_obj_t *label_drive_left = lv_label_create(btn_drive_left, NULL);
-  lv_label_set_text(label_drive_left, SYMBOL_LEFT);
-  lv_obj_t *label_drive_right = lv_label_create(btn_drive_right, NULL);
-  lv_label_set_text(label_drive_right, SYMBOL_RIGHT);
+  static lv_style_t switch_side_off_style;
+  lv_style_copy(&switch_side_off_style, &switch_team_blue_style);
+  switch_side_off_style.body.main_color = LV_COLOR_ORANGE;
+
+  static lv_style_t switch_team_red_style;
+  lv_style_copy(&switch_team_red_style, &switch_team_blue_style);
+  switch_team_red_style.body.main_color = LV_COLOR_RED;
+  switch_team_red_style.body.grad_color = LV_COLOR_RED;
+
+  static lv_style_t switch_team_bg_style;
+  lv_style_copy(&switch_team_bg_style, &lv_style_plain);
+  switch_team_bg_style.body.main_color = LV_COLOR_BLUE;
+  switch_team_bg_style.body.grad_color = LV_COLOR_BLUE;
+  switch_team_bg_style.body.radius = LV_RADIUS_CIRCLE;
+
+  static lv_style_t switch_team_indic_style;
+  lv_style_copy(&switch_team_indic_style, &lv_style_plain);
+  switch_team_indic_style.body.main_color = LV_COLOR_RED;
+  switch_team_indic_style.body.grad_color = LV_COLOR_RED;
+  switch_team_indic_style.body.padding.inner = 0;
+  switch_team_indic_style.body.padding.hor = 0;
+  switch_team_indic_style.body.padding.ver = 0;
+  switch_team_indic_style.body.shadow.width = 0;
+  switch_team_indic_style.body.radius = LV_RADIUS_CIRCLE;
+
+  lv_obj_t *label_team = lv_label_create(tab_auton, NULL);
+  lv_label_set_text(label_team, "Choose Team Color:");
+  lv_obj_align(label_team, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+
+  lv_obj_t *switch_team = lv_sw_create(tab_auton, NULL);
+  lv_sw_off(switch_team);
+  lv_obj_align(switch_team, NULL, LV_ALIGN_IN_LEFT_MID, 190, 0);
+
+  lv_sw_set_style(switch_team, LV_SW_STYLE_KNOB_OFF, &switch_team_blue_style);
+  lv_sw_set_style(switch_team, LV_SW_STYLE_KNOB_ON, &switch_team_red_style);
+  lv_sw_set_style(switch_team, LV_SW_STYLE_BG, &switch_team_bg_style);
+  lv_sw_set_style(switch_team, LV_SW_STYLE_INDIC, &switch_team_indic_style);
+  ///////////
+  lv_obj_t *label_front = lv_label_create(tab_auton, NULL);
+  lv_label_set_text(label_front, "Front");
+  lv_obj_align(label_team, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 100);
+
+  lv_obj_t *label_back = lv_label_create(tab_auton, NULL);
+  lv_label_set_text(label_back, "Back");
+  lv_obj_align(label_back, NULL, LV_ALIGN_IN_TOP_LEFT, 220, 100);
+
+  lv_obj_t *switch_side = lv_sw_create(tab_auton, NULL);
+  lv_sw_off(switch_side);
+  lv_obj_align(switch_side, NULL, LV_ALIGN_IN_LEFT_MID, 190, 100);
+  /*
+    lv_sw_set_style(switch_side, LV_SW_STYLE_KNOB_OFF, &switch_side_blue_style);
+    lv_sw_set_style(switch_side, LV_SW_STYLE_KNOB_ON, &switch_side_red_style);
+    lv_sw_set_style(switch_side, LV_SW_STYLE_BG, &switch_side_bg_style);
+    lv_sw_set_style(switch_side, LV_SW_STYLE_INDIC, &switch_side_indic_style);
+    */
+
+  ////////////////////////////////////
+  lv_obj_t *label_pot = lv_label_create(tab_values, NULL);
+  lv_obj_align(label_pot, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
 }
 
 /**

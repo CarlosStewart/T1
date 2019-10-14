@@ -1,3 +1,6 @@
+#pragma once
+#include "main.h"
+
 // MACROS
 #define GREEN AbstractMotor::gearset::green
 #define BLUE AbstractMotor::gearset::blue
@@ -29,14 +32,20 @@ const int ROLLR_PORT = 11;
 const bool ROLLR_REV = true;
 
 // CONTROLS
+#define BTN_TILT_UP_AUTO ControllerDigital::right
+#define BTN_TILT_DOWN_AUTO ControllerDigital::down
 #define BTN_TILT_UP ControllerDigital::L1
 #define BTN_TILT_DOWN ControllerDigital::L2
 #define BTN_TILT_LOW ControllerDigital::A
 #define BTN_TILT_MID ControllerDigital::B
 #define BTN_TILT_HIGH ControllerDigital::X
-#define BTN_ROLL_TOGGLE ControllerDigital::R1
+#define BTN_ROLL_TOGGLE ControllerDigital::Y
+#define BTN_ROLL_IN ControllerDigital::R1
+#define BTN_ROLL_OUT ControllerDigital::R2
 
 // SENSORS
-const char TP_PORT = 'G';
-
-// VALUES
+const char TP_PORT = 'A';
+///////////////
+const char TRACK_SIDE = 'B';
+const char TRACK_RIGHT = 'D';
+const char TRACK_LEFT = 'F';
