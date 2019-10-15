@@ -2,6 +2,139 @@
 using namespace okapi; // eliminates the need to say okapi:: a hundred times
 
 Controller masterController(ControllerId::master);
+/**
+ * Runs initialization code. This occurs as soon as the program is started.
+ *
+ * All other competition modes are blocked by initialize; it is recommended
+ * to keep execution time for this mode under a few seconds.
+ */
+
+void initialize() {
+  static lv_style_t tabview_indic_style;
+  tabview_indic_style.body.border.color = LV_COLOR_WHITE;
+  tabview_indic_style.body.border.width = 4;
+  tabview_indic_style.body.border.part = LV_BORDER_FULL;
+  tabview_indic_style.body.border.opa = LV_OPA_100;
+  tabview_indic_style.body.padding.inner = 5;
+  tabview_indic_style.body.opa = LV_OPA_100;
+
+  static lv_style_t tabview_btn_style;
+  lv_style_copy(&tabview_btn_style, &lv_style_plain);
+  tabview_btn_style.body.main_color = LV_COLOR_HEX(0xa600ff);
+  tabview_btn_style.body.grad_color = LV_COLOR_HEX(0xa600ff);
+  tabview_btn_style.text.color = LV_COLOR_WHITE;
+
+  static lv_style_t tabview_btn_tgl_style;
+  lv_style_copy(&tabview_btn_tgl_style, &tabview_btn_style);
+  tabview_btn_tgl_style.body.border.width = 2;
+  tabview_btn_tgl_style.body.border.color = LV_COLOR_WHITE;
+
+  static lv_style_t tabview_btn_pr_style;
+  lv_style_copy(&tabview_btn_pr_style, &lv_style_plain);
+  tabview_btn_pr_style.body.main_color = LV_COLOR_WHITE;
+  tabview_btn_pr_style.body.grad_color = LV_COLOR_WHITE;
+  tabview_btn_pr_style.text.color = LV_COLOR_WHITE;
+
+  lv_obj_t *tabview_windows = lv_tabview_create(lv_scr_act(), NULL);
+  lv_obj_t *tab_auton = lv_tabview_add_tab(tabview_windows, "Auton");
+  lv_obj_t *tab_values = lv_tabview_add_tab(tabview_windows, "Values");
+
+  lv_tabview_set_style(tabview_windows, LV_TABVIEW_STYLE_INDIC,
+                       &tabview_indic_style);
+  lv_tabview_set_style(tabview_windows, LV_TABVIEW_STYLE_BTN_REL,
+                       &tabview_btn_style);
+  lv_tabview_set_style(tabview_windows, LV_TABVIEW_STYLE_BTN_PR,
+                       &tabview_btn_pr_style);
+  lv_tabview_set_style(tabview_windows, LV_TABVIEW_STYLE_BTN_TGL_REL,
+                       &tabview_btn_tgl_style);
+  lv_tabview_set_style(tabview_windows, LV_TABVIEW_STYLE_BTN_TGL_PR,
+                       &tabview_btn_pr_style);
+
+  static lv_style_t switch_team_blue_style;
+  lv_style_copy(&switch_team_blue_style, &lv_style_plain);
+  switch_team_blue_style.body.main_color = LV_COLOR_BLUE;
+  switch_team_blue_style.body.grad_color = LV_COLOR_BLUE;
+  switch_team_blue_style.body.radius = LV_RADIUS_CIRCLE;
+  switch_team_blue_style.body.border.color = LV_COLOR_WHITE;
+  switch_team_blue_style.body.border.part = LV_BORDER_FULL;
+  switch_team_blue_style.body.border.width = 2;
+
+  static lv_style_t switch_side_off_style;
+  lv_style_copy(&switch_side_off_style, &switch_team_blue_style);
+  switch_side_off_style.body.main_color = LV_COLOR_ORANGE;
+
+  static lv_style_t switch_team_red_style;
+  lv_style_copy(&switch_team_red_style, &switch_team_blue_style);
+  switch_team_red_style.body.main_color = LV_COLOR_RED;
+  switch_team_red_style.body.grad_color = LV_COLOR_RED;
+
+  static lv_style_t switch_team_bg_style;
+  lv_style_copy(&switch_team_bg_style, &lv_style_plain);
+  switch_team_bg_style.body.main_color = LV_COLOR_BLUE;
+  switch_team_bg_style.body.grad_color = LV_COLOR_BLUE;
+  switch_team_bg_style.body.radius = LV_RADIUS_CIRCLE;
+
+  static lv_style_t switch_team_indic_style;
+  lv_style_copy(&switch_team_indic_style, &lv_style_plain);
+  switch_team_indic_style.body.main_color = LV_COLOR_RED;
+  switch_team_indic_style.body.grad_color = LV_COLOR_RED;
+  switch_team_indic_style.body.padding.inner = 0;
+  switch_team_indic_style.body.padding.hor = 0;
+  switch_team_indic_style.body.padding.ver = 0;
+  switch_team_indic_style.body.shadow.width = 0;
+  switch_team_indic_style.body.radius = LV_RADIUS_CIRCLE;
+
+  lv_obj_t *label_team = lv_label_create(tab_auton, NULL);
+  lv_label_set_text(label_team, "Choose Team Color:");
+  lv_obj_align(label_team, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+
+  lv_obj_t *switch_team = lv_sw_create(tab_auton, NULL);
+  lv_sw_off(switch_team);
+  lv_obj_align(switch_team, NULL, LV_ALIGN_IN_LEFT_MID, 190, 0);
+
+  lv_sw_set_style(switch_team, LV_SW_STYLE_KNOB_OFF, &switch_team_blue_style);
+  lv_sw_set_style(switch_team, LV_SW_STYLE_KNOB_ON, &switch_team_red_style);
+  lv_sw_set_style(switch_team, LV_SW_STYLE_BG, &switch_team_bg_style);
+  lv_sw_set_style(switch_team, LV_SW_STYLE_INDIC, &switch_team_indic_style);
+  ///////////
+  lv_obj_t *label_front = lv_label_create(tab_auton, NULL);
+  lv_label_set_text(label_front, "Front");
+  lv_obj_align(label_team, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 100);
+
+  lv_obj_t *label_back = lv_label_create(tab_auton, NULL);
+  lv_label_set_text(label_back, "Back");
+  lv_obj_align(label_back, NULL, LV_ALIGN_IN_TOP_LEFT, 220, 100);
+
+  lv_obj_t *switch_side = lv_sw_create(tab_auton, NULL);
+  lv_sw_off(switch_side);
+  lv_obj_align(switch_side, NULL, LV_ALIGN_IN_LEFT_MID, 190, 100);
+  /*
+    lv_sw_set_style(switch_side, LV_SW_STYLE_KNOB_OFF, &switch_side_blue_style);
+    lv_sw_set_style(switch_side, LV_SW_STYLE_KNOB_ON, &switch_side_red_style);
+    lv_sw_set_style(switch_side, LV_SW_STYLE_BG, &switch_side_bg_style);
+    lv_sw_set_style(switch_side, LV_SW_STYLE_INDIC, &switch_side_indic_style);
+    */
+
+  ////////////////////////////////////
+}
+
+/**
+ * Runs while the robot is in the disabled state of Field Management System or
+ * the VEX Competition Switch, following either autonomous or opcontrol. When
+ * the robot is enabled, this task will exit.
+ */
+void disabled() {}
+
+/**
+ * Runs after initialize(), and before autonomous when connected to the Field
+ * Management System or the VEX Competition Switch. This is intended for
+ * competition-specific initialization routines, such as an autonomous selector
+ * on the LCD.
+ *
+ * This task will exit when the robot is enabled and autonomous or opcontrol
+ * starts.
+ */
+void competition_initialize() {}
 
 /////////////////////////////////////////
 //          Drivetrain Control         //
@@ -29,6 +162,7 @@ void controlDrive(void *) {
 }
 } // namespace drivetrain
 
+/*
 /////////////////////////////////////
 //          Tilter Control         //
 /////////////////////////////////////
@@ -40,6 +174,8 @@ const int TILT_LOW = 20;   // height for low towers
 const int TILT_MED = 40;   // height for medium towers
 const int TILT_HIGH = 60;  // height for tallest tower
 // definition of buttons
+ControllerButton btnUpAuto(BTN_TILT_UP_AUTO);
+ControllerButton btnDownAuto(BTN_TILT_DOWN_AUTO);
 ControllerButton btnUp(BTN_TILT_UP);
 ControllerButton btnDown(BTN_TILT_DOWN);
 ControllerButton btnLow(BTN_TILT_LOW);
@@ -51,47 +187,25 @@ auto controller = AsyncControllerFactory::posPID(
 
 // funtion to be run in opcontrol() to control the tilter
 void controlTilt() {
-  if (btnUp.changedToPressed()) { // tilt up if button is pressed
-    controller.setTarget(TILT_UP);
+  controller.flipDisable(true);
+
+  if (btnUp.isPressed()) {
+    controller.setTarget(200);
     controller.flipDisable(false);
-  } else if (btnUp.changedToReleased()) { // stop
-    controller.flipDisable(true);
-  } else if (btnDown.changedToPressed()) { // tilt down if button is pressed
-    controller.setTarget(TILT_DOWN);
-    controller.flipDisable(false);
-  } else if (btnDown.changedToReleased()) { // stop
-    controller.flipDisable(true);
-  } else if (btnLow.changedToPressed()) { // tilt to low tower height when
-                                          // button is pressed
-    controller.setTarget(TILT_LOW);
-    controller.flipDisable(false);
-  } else if (btnLow.changedToReleased()) { // stop
-    controller.flipDisable(true);
-  } else if (btnMed.changedToPressed()) { // tilt to medium tower height
-                                          // when button is pressed
-    controller.setTarget(TILT_MED);
-    controller.flipDisable(false);
-  } else if (btnMed.changedToReleased()) { // stop
-    controller.flipDisable(true);
-  } else if (btnHigh.changedToPressed()) { // tilt to high tower height when
-                                           // button is pressed
-    controller.setTarget(TILT_HIGH);
-    controller.flipDisable(false);
-  } else if (btnHigh.changedToReleased()) { // stop
-    controller.flipDisable(true);
   } else {
-    controller.setTarget(pot.get());
     controller.flipDisable(false);
   }
+
 }
 } // namespace tilt
+*/
 
 /////////////////////////////////////
 //       Tilter Control mkII       //
 /////////////////////////////////////
 namespace tilt2 {
 // preset heights
-enum heights { up = 20, down = 100, low = 80, med = 60, high = 40 };
+enum heights { up = 920, down = 4095, low = 4095, med = 3800, high = 2700 };
 // definition of buttons
 ControllerButton btnUp(BTN_TILT_UP);
 ControllerButton btnDown(BTN_TILT_DOWN);
@@ -101,22 +215,29 @@ ControllerButton btnHigh(BTN_TILT_HIGH);
 Potentiometer pot(TP_PORT);
 // definition of controller
 auto controller = AsyncControllerFactory::posPID(
-    boolToSign(TILT_REV) * TILT_PORT, pot, 0.001, 0.0, 0.0001);
+    boolToSign(TILT_REV) * TILT_PORT, pot, 0.005, 0.0000001, 0.000020);
 
 // funtion to be run in opcontrol() to control the tilter
 void controlTilt() {
-  if (btnUp.isPressed())
+  if (btnUp.isPressed()) {
+    controller.flipDisable(false);
     controller.setTarget(up);
-  else if (btnDown.isPressed())
+  } else if (btnDown.isPressed()) {
+    controller.flipDisable(false);
     controller.setTarget(down);
-  else if (btnLow.isPressed())
+  } else if (btnLow.isPressed()) {
+    controller.flipDisable(false);
     controller.setTarget(low);
-  else if (btnMed.isPressed())
+  } else if (btnMed.isPressed()) {
+    controller.flipDisable(false);
     controller.setTarget(med);
-  else if (btnHigh.isPressed())
+  } else if (btnHigh.isPressed()) {
+    controller.flipDisable(false);
     controller.setTarget(high);
-  else
-    controller.setTarget(pot.get());
+  } else {
+    controller.flipDisable(true);
+  }
+  printf("pot: %f\n", pot.get());
 }
 } // namespace tilt2
 

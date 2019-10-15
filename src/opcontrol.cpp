@@ -215,7 +215,7 @@ ControllerButton btnHigh(BTN_TILT_HIGH);
 Potentiometer pot(TP_PORT);
 // definition of controller
 auto controller = AsyncControllerFactory::posPID(
-    boolToSign(TILT_REV) * TILT_PORT, pot, 0.005, 0.0, 0.000005);
+    boolToSign(TILT_REV) * TILT_PORT, pot, 0.005, 0.0000001, 0.000020);
 
 // funtion to be run in opcontrol() to control the tilter
 void controlTilt() {
