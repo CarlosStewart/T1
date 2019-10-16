@@ -162,10 +162,12 @@ void controlDrive(void *) {
 }
 } // namespace drivetrain
 
-/*
+
+
 /////////////////////////////////////
 //          Tilter Control         //
 /////////////////////////////////////
+/*
 namespace tilt {
 // Preset heights
 const int TILT_UP = 200;   // height to relese stack
@@ -203,6 +205,8 @@ void controlTilt() {
 /////////////////////////////////////
 //       Tilter Control mkII       //
 /////////////////////////////////////
+
+/*
 namespace tilt2 {
 // preset heights
 enum heights { up = 920, down = 4095, low = 4095, med = 3800, high = 2700 };
@@ -215,7 +219,7 @@ ControllerButton btnHigh(BTN_TILT_HIGH);
 Potentiometer pot(TP_PORT);
 // definition of controller
 auto controller = AsyncControllerFactory::posPID(
-    boolToSign(TILT_REV) * TILT_PORT, pot, 0.005, 0.0000001, 0.000020);
+    boolToSign(TILT_REV) * TILT_PORT, pot, 0.005, 0.000, 0.000025);
 
 // funtion to be run in opcontrol() to control the tilter
 void controlTilt() {
@@ -240,16 +244,74 @@ void controlTilt() {
   printf("pot: %f\n", pot.get());
 }
 } // namespace tilt2
+*/
+
+/////////////////////////////////////
+//       Tilter Control mkII       //
+/////////////////////////////////////
+namespace tiltP{
+// preset heights
+enum heights { up = 920, down = 4095, low = 4095, med = 4000, high = 2700 };
+// definition of buttons
+ControllerButton btnUp(BTN_TILT_UP);
+ControllerButton btnDown(BTN_TILT_DOWN);
+ControllerButton btnLow(BTN_TILT_LOW);
+ControllerButton btnMed(BTN_TILT_MID);
+ControllerButton btnHigh(BTN_TILT_HIGH);
+
+Potentiometer pot(TP_PORT);
+Motor motor(boolToSign(TILT_REV) * TILT_PORT);
+
+
+//pLoop variables
+double target;
+void controlTilt (void *){
+  double error;
+  double kP = 0.25;
+  double potVal;
+  motor.setBrakeMode(AbstractMotor::brakeMode::hold);
+  while(true){
+    if(target == -1){
+      motor.moveVelocity(0);
+    }
+    else{
+      potVal = pot.get();
+      error = target - potVal;
+      motor.moveVelocity(error * kP);
+    }
+  }
+}
+
+void controlTarget(){
+  if(btnUp.isPressed()){
+    target = heights::up;
+  }
+  else if (btnDown.isPressed()){
+    target = heights::down;
+  }
+  else if (btnLow.isPressed()){
+    target = heights::low;
+  }
+  else if(btnMed.isPressed()){
+    target = heights::high;
+  }
+  else if(btnHigh.isPressed()){
+    target = heights::high;
+  }
+  else{
+    target = -1;
+  }
+}
+}
 
 /////////////////////////////////////
 //          Roller Control         //
 /////////////////////////////////////
 namespace roll {
-const int speed = 100;
+const int speed = 200;
 ControllerButton roll(BTN_ROLL_TOGGLE);
 MotorGroup roll_group({boolToSign(ROLLL_REV) * ROLLL_PORT,
                        boolToSign(ROLLR_REV) * ROLLR_PORT});
-
 // funtion to be run in opcontrol() to control the roller
 void controlRoll() {
   // toggles the speed of the motor between (int) speed and 0
@@ -259,11 +321,36 @@ void controlRoll() {
 }
 } // namespace roll
 
+/////////////////////////////////////
+//           Macro Control         //
+/////////////////////////////////////
+namespace macros{
+//buttons
+ControllerButton btnStack(BTN_MACRO_STACK);
+
+void stack(){
+  tiltP::target = tiltP::heights::up;
+  while(tiltP::pot.get() != tiltP::heights::up){
+    pros::delay(50);
+  }
+}
+
+void controlMacros(){
+  if (btnStack.isPressed()){
+    stack();
+  }
+}
+}
+
+
 void opcontrol() {
   pros::Task taskDrive(drivetrain::controlDrive);
+  pros::Task taskTilt(tiltP::controlTilt);
+  roll::roll_group.setBrakeMode(AbstractMotor::brakeMode::hold);
   while (true) {
-    tilt2::controlTilt();
+    tiltP::controlTarget();
     roll::controlRoll();
+    macros::controlMacros();
     pros::delay(20);
   }
 }

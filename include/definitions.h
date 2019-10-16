@@ -26,13 +26,13 @@ const bool TILT_REV = true;
 
 ////////////////
 const int ROLLL_PORT = 19;
-const bool ROLLL_REV = false;
+const bool ROLLL_REV = true;
 
-const int ROLLR_PORT = 11;
-const bool ROLLR_REV = true;
+const int ROLLR_PORT = 12;
+const bool ROLLR_REV = false;
 
 // CONTROLS
-#define BTN_TILT_UP_AUTO ControllerDigital::right
+#define BTN_MACRO_STACK ControllerDigital::right
 #define BTN_TILT_DOWN_AUTO ControllerDigital::down
 #define BTN_TILT_UP ControllerDigital::L1
 #define BTN_TILT_DOWN ControllerDigital::L2

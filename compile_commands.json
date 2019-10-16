@@ -28,7 +28,7 @@
             "-fdiagnostics-color",
             "--std=gnu++17",
             "-o",
-            "C:/Users/porsha1/AppData/Local/Temp/tmpn3q5m5x1/autonomous.cpp.o",
+            "bin/autonomous.cpp.o",
             "src\\autonomous.cpp"
         ],
         "directory": "J:\\GitHub\\T1",
