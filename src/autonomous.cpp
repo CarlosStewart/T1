@@ -16,28 +16,13 @@ void autonomous() {
   auto drive = ChassisControllerFactory::create(
       boolToSign(DLF_REV) * DLF_PORT, boolToSign(DRF_REV) * DRF_PORT,
       boolToSign(DRB_REV) * DRB_PORT, boolToSign(DLB_REV) * DLB_PORT,
-      IterativePosPIDController::Gains{0.001, 0, 0.0001},
-      IterativePosPIDController::Gains{0.001, 0, 0.0001},
-      IterativePosPIDController::Gains{0.001, 0, 0.0001}, BLUE,
-      {0.00028222206, 2}); //{motor deg to m, motor deg to bot deg}
+      BLUE * (84.0 / 36.0),
+      // IterativePosPIDController::Gains{0.001, 0, 0.0001},
+      // IterativePosPIDController::Gains{0.001, 0, 0.0001},
+      // IterativePosPIDController::Gains{0.001, 0, 0.0001}, BLUE,
+      {4_in, 13.25_in}); //{motor deg to m, motor deg to bot deg}
 
   // FOR TESTING ONLY
-  Controller con;
-  ControllerButton btnForward(ControllerDigital::up);
-  ControllerButton btnTurnRight90(ControllerDigital::right);
-  while (true) {
-
-    drive.arcade(con.getAnalog(ControllerAnalog::leftY),
-                 con.getAnalog(ControllerAnalog::rightX));
-
-    pros::lcd::clear_line(1);
-    pros::lcd::print(1, "Sensors: %f", drive.getSensorVals());
-
-    if (btnForward.changedToPressed()){
-      drive.moveDistance(24_in);
-    }
-    else if(btnTurnRight90.changedToPressed()){
-      drive.turnAngle(90_deg);
-    }
-  }
+  drive.moveDistance(24_in);
+  drive.turnAngle(90_deg);
 }
