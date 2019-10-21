@@ -280,21 +280,24 @@ void controlTilt(void *) {
       error = target - potVal;
       motor.moveVelocity(error * kP * modifier);
     }
+    // printf("pot: %f\n", pot.get());
   }
 }
 
 void controlTarget() {
-  if (btnUp.isPressed()) {
+  if (btnUp.changedToPressed()) {
     setTarget(heights::up, 1);
-  } else if (btnDown.isPressed()) {
+  } else if (btnDown.changedToPressed()) {
     setTarget(heights::down, 1);
-  } else if (btnLow.isPressed()) {
+  } else if (btnLow.changedToPressed()) {
     setTarget(heights::low, 1);
-  } else if (btnMed.isPressed()) {
+  } else if (btnMed.changedToPressed()) {
     setTarget(heights::high, 1);
-  } else if (btnHigh.isPressed()) {
+  } else if (btnHigh.changedToPressed()) {
     setTarget(heights::high, 1);
-  } else {
+  } else if (btnUp.changedToReleased() || btnDown.changedToReleased() ||
+             btnLow.changedToReleased() || btnMed.changedToReleased() ||
+             btnHigh.changedToReleased()) {
     target = -1;
   }
 }
@@ -305,27 +308,28 @@ void controlTarget() {
 /////////////////////////////////////
 namespace roll {
 const int speed = 200;
+double targetSpeed = 0;
 int toggle = 1;
 ControllerButton roll(BTN_ROLL_TOGGLE);
 ControllerButton rollIn(BTN_ROLL_IN);
 ControllerButton rollOut(BTN_ROLL_OUT);
 MotorGroup roll_group({boolToSign(ROLLL_REV) * ROLLL_PORT,
                        boolToSign(ROLLR_REV) * ROLLR_PORT});
-// funtion to be run in opcontrol() to control the roller
+
 void controlRoll() {
-  // toggles the speed of the motor between (int) speed and 0
   if (roll.changedToPressed()) {
     toggle++;
     if (toggle % 2 == 0)
-      roll_group.moveVelocity(speed);
+      targetSpeed = speed;
     else
-      roll_group.moveVelocity(0);
+      targetSpeed = 0;
   } else if (rollIn.changedToPressed())
-    roll_group.moveVelocity(speed);
+    targetSpeed = speed;
   else if (rollOut.changedToPressed())
-    roll_group.moveVelocity(-speed);
+    targetSpeed = -speed;
   else if (rollIn.changedToReleased() || rollOut.changedToReleased())
-    roll_group.moveVelocity(0);
+    targetSpeed = 0;
+  roll_group.moveVelocity(targetSpeed);
 }
 } // namespace roll
 
@@ -337,16 +341,18 @@ namespace macros {
 ControllerButton btnStack(BTN_MACRO_STACK);
 
 void stack() {
-  roll::roll_group.moveVelocity(20);
-  tiltP::setTarget(tiltP::heights::up, 0.4);
-  while (tiltP::pot.get() < tiltP::heights::up - 20) {
+  roll::targetSpeed = -40;
+  tiltP::setTarget(tiltP::heights::up, 0.5);
+  printf("in loop");
+  while (true) {
     pros::delay(50);
+    printf("in loop");
   }
-  roll::roll_group.moveVelocity(0);
+  // roll::targetSpeed = 0;
 }
 
 void controlMacros() {
-  if (btnStack.isPressed()) {
+  if (btnStack.changedToPressed()) {
     stack();
   }
 }
@@ -358,8 +364,8 @@ void opcontrol() {
   roll::roll_group.setBrakeMode(AbstractMotor::brakeMode::hold);
   while (true) {
     tiltP::controlTarget();
-    roll::controlRoll();
     macros::controlMacros();
+    roll::controlRoll();
     pros::delay(20);
   }
 }
