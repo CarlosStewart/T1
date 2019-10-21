@@ -162,8 +162,6 @@ void controlDrive(void *) {
 }
 } // namespace drivetrain
 
-
-
 /////////////////////////////////////
 //          Tilter Control         //
 /////////////////////////////////////
@@ -205,7 +203,6 @@ void controlTilt() {
 /////////////////////////////////////
 //       Tilter Control mkII       //
 /////////////////////////////////////
-
 /*
 namespace tilt2 {
 // preset heights
@@ -249,9 +246,12 @@ void controlTilt() {
 /////////////////////////////////////
 //       Tilter Control mkII       //
 /////////////////////////////////////
-namespace tiltP{
+namespace tiltP {
 // preset heights
 enum heights { up = 920, down = 4095, low = 4095, med = 4000, high = 2700 };
+// pLoop variables
+double target;
+double modifier;
 // definition of buttons
 ControllerButton btnUp(BTN_TILT_UP);
 ControllerButton btnDown(BTN_TILT_DOWN);
@@ -262,86 +262,95 @@ ControllerButton btnHigh(BTN_TILT_HIGH);
 Potentiometer pot(TP_PORT);
 Motor motor(boolToSign(TILT_REV) * TILT_PORT);
 
+void setTarget(double t, double m) {
+  target = t;
+  modifier = m;
+}
 
-//pLoop variables
-double target;
-void controlTilt (void *){
+void controlTilt(void *) {
   double error;
   double kP = 0.25;
   double potVal;
   motor.setBrakeMode(AbstractMotor::brakeMode::hold);
-  while(true){
-    if(target == -1){
+  while (true) {
+    if (target == -1) {
       motor.moveVelocity(0);
-    }
-    else{
+    } else {
       potVal = pot.get();
       error = target - potVal;
-      motor.moveVelocity(error * kP);
+      motor.moveVelocity(error * kP * modifier);
     }
+    // printf("pot: %f\n", pot.get());
   }
 }
 
-void controlTarget(){
-  if(btnUp.isPressed()){
-    target = heights::up;
-  }
-  else if (btnDown.isPressed()){
-    target = heights::down;
-  }
-  else if (btnLow.isPressed()){
-    target = heights::low;
-  }
-  else if(btnMed.isPressed()){
-    target = heights::high;
-  }
-  else if(btnHigh.isPressed()){
-    target = heights::high;
-  }
-  else{
+void controlTarget() {
+  if (btnUp.changedToPressed()) {
+    setTarget(heights::up, 1);
+  } else if (btnDown.changedToPressed()) {
+    setTarget(heights::down, 1);
+  } else if (btnLow.changedToPressed()) {
+    setTarget(heights::low, 1);
+  } else if (btnMed.changedToPressed()) {
+    setTarget(heights::high, 1);
+  } else if (btnHigh.changedToPressed()) {
+    setTarget(heights::high, 1);
+  } else if (btnUp.changedToReleased() || btnDown.changedToReleased() ||
+             btnLow.changedToReleased() || btnMed.changedToReleased() ||
+             btnHigh.changedToReleased()) {
     target = -1;
   }
 }
-}
+} // namespace tiltP
 
 /////////////////////////////////////
 //          Roller Control         //
 /////////////////////////////////////
 namespace roll {
 const int speed = 200;
+double targetSpeed = 0;
+int toggle = 1;
 ControllerButton roll(BTN_ROLL_TOGGLE);
+ControllerButton rollIn(BTN_ROLL_IN);
+ControllerButton rollOut(BTN_ROLL_OUT);
 MotorGroup roll_group({boolToSign(ROLLL_REV) * ROLLL_PORT,
                        boolToSign(ROLLR_REV) * ROLLR_PORT});
-// funtion to be run in opcontrol() to control the roller
+
 void controlRoll() {
-  // toggles the speed of the motor between (int) speed and 0
   if (roll.changedToPressed()) {
-    roll_group.moveVelocity(abs(roll_group.getTargetVelocity() - speed));
-  }
+    toggle++;
+    if (toggle % 2 == 0)
+      targetSpeed = speed;
+    else
+      targetSpeed = 0;
+  } else if (rollIn.changedToPressed())
+    targetSpeed = speed;
+  else if (rollOut.changedToPressed())
+    targetSpeed = -speed;
+  else if (rollIn.changedToReleased() || rollOut.changedToReleased())
+    targetSpeed = 0;
+  roll_group.moveVelocity(targetSpeed);
 }
 } // namespace roll
 
 /////////////////////////////////////
 //           Macro Control         //
 /////////////////////////////////////
-namespace macros{
-//buttons
+namespace macros {
+// buttons
 ControllerButton btnStack(BTN_MACRO_STACK);
 
-void stack(){
-  tiltP::target = tiltP::heights::up;
-  while(tiltP::pot.get() != tiltP::heights::up){
-    pros::delay(50);
-  }
+void stack() {
+  roll::targetSpeed = -40;
+  tiltP::setTarget(tiltP::heights::up, 0.5);
 }
 
-void controlMacros(){
-  if (btnStack.isPressed()){
+void controlMacros() {
+  if (btnStack.changedToPressed()) {
     stack();
   }
 }
-}
-
+} // namespace macros
 
 void opcontrol() {
   pros::Task taskDrive(drivetrain::controlDrive);
@@ -349,8 +358,8 @@ void opcontrol() {
   roll::roll_group.setBrakeMode(AbstractMotor::brakeMode::hold);
   while (true) {
     tiltP::controlTarget();
-    roll::controlRoll();
     macros::controlMacros();
+    roll::controlRoll();
     pros::delay(20);
   }
 }

@@ -343,12 +343,6 @@ ControllerButton btnStack(BTN_MACRO_STACK);
 void stack() {
   roll::targetSpeed = -40;
   tiltP::setTarget(tiltP::heights::up, 0.5);
-  printf("in loop");
-  while (true) {
-    pros::delay(50);
-    printf("in loop");
-  }
-  // roll::targetSpeed = 0;
 }
 
 void controlMacros() {
