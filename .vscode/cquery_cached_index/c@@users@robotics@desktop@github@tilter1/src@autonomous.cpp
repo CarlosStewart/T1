@@ -14,15 +14,15 @@ using namespace okapi;
 void autonomous() {
   // sets up chassis for easy drivetrain control in autonomous
   auto drive = ChassisControllerFactory::create(
-      boolToSign(DLF_REV) * DLF_PORT, boolToSign(DRF_REV) * DRF_PORT,
-      boolToSign(DRB_REV) * DRB_PORT, boolToSign(DLB_REV) * DLB_PORT,
-      BLUE * (84.0 / 36.0),
+      {boolToSign(DLF_REV) * DLF_PORT, boolToSign(DLB_REV) * DLB_PORT},
+      {boolToSign(DRF_REV) * DRF_PORT, boolToSign(DRB_REV) * DRB_PORT},
+      BLUE * (36.0 / 84.0),
       // IterativePosPIDController::Gains{0.001, 0, 0.0001},
       // IterativePosPIDController::Gains{0.001, 0, 0.0001},
       // IterativePosPIDController::Gains{0.001, 0, 0.0001}, BLUE,
-      {4_in, 13.25_in}); //{motor deg to m, motor deg to bot deg}
+      {-6230, 38}); //{motor deg to m, motor deg to bot deg}
 
   // FOR TESTING ONLY
-  drive.moveDistance(24_in);
-  drive.turnAngle(90_deg);
+  drive.moveDistance(72_in);
+  drive.turnAngle(360_deg);
 }

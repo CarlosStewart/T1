@@ -136,6 +136,28 @@ void disabled() {}
  */
 void competition_initialize() {}
 
+void autonomous() {
+  // sets up chassis for easy drivetrain control in autonomous
+  auto drive = ChassisControllerFactory::create(
+      {boolToSign(DLF_REV) * DLF_PORT, boolToSign(DLB_REV) * DLB_PORT},
+      {boolToSign(DRF_REV) * DRF_PORT, boolToSign(DRB_REV) * DRB_PORT},
+      IterativePosPIDController::Gains{0.002, 0.000001, 0.000050}, // forward
+      IterativePosPIDController::Gains{0.002, 0.000001, 0.000050}, // straight
+      IterativePosPIDController::Gains{0.002, 0.000001, 0.000050}, // turn
+      BLUE * (36.0 / 84.0),
+      {-6230, 35.5}); //{motor deg to m, motor deg to bot deg}
+  auto driveController = AsyncControllerFactory::motionProfile(
+      1.0,    // Maximum linear velocity of the Chassis in m/s
+      2.0,    // Maximum linear acceleration of the Chassis in m/s/s
+      10.0,   // Maximum linear jerk of the Chassis in m/s/s/s
+      drive); // Chassis Controller
+
+  // FOR TESTING ONLY
+  // drive.moveDistance(48_in);
+  // drive.turnAngle(360_deg);
+  driveController.moveTo({Point{0_ft, 0_ft, 0_deg}, Point{-3_ft, 0_ft, 0_deg}});
+}
+
 /////////////////////////////////////////
 //          Drivetrain Control         //
 /////////////////////////////////////////
@@ -149,9 +171,9 @@ Motor drive_right_back(DRB_PORT, DRB_REV, BLUE, DEGREES);
 // control function that is run in a separate thread to prevent interruptions
 void controlDrive(void *) {
   while (true) {
-    double ly = masterController.getAnalog(ControllerAnalog::leftY) * 600;
-    double lx = masterController.getAnalog(ControllerAnalog::leftX) * 600;
-    double rx = masterController.getAnalog(ControllerAnalog::rightX) * 600;
+    double ly = -masterController.getAnalog(ControllerAnalog::leftY) * 600;
+    double lx = -masterController.getAnalog(ControllerAnalog::leftX) * 600;
+    double rx = -masterController.getAnalog(ControllerAnalog::rightX) * 600;
 
     drive_right_front.moveVelocity(ly - rx - lx);
     drive_right_back.moveVelocity(ly - rx + lx);
