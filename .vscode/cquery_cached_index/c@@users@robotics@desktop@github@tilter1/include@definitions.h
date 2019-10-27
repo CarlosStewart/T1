@@ -42,6 +42,7 @@ const bool ROLLR_REV = false;
 #define BTN_ROLL_TOGGLE ControllerDigital::Y
 #define BTN_ROLL_IN ControllerDigital::R1
 #define BTN_ROLL_OUT ControllerDigital::R2
+#define BTN_ROLL_COAST ControllerDigital::down
 
 // SENSORS
 const char TP_PORT = 'A';

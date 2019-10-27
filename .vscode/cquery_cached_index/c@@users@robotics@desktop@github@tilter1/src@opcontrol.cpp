@@ -140,18 +140,18 @@ void competition_initialize() {}
 //          Drivetrain Control         //
 /////////////////////////////////////////
 namespace drivetrain {
-// motor definitions
-Motor drive_left_front(DLF_PORT, DLF_REV, BLUE, DEGREES);
-Motor drive_right_front(DRF_PORT, DRF_REV, BLUE, DEGREES);
-Motor drive_left_back(DLB_PORT, DLB_REV, BLUE, DEGREES);
-Motor drive_right_back(DRB_PORT, DRB_REV, BLUE, DEGREES);
 
 // control function that is run in a separate thread to prevent interruptions
 void controlDrive(void *) {
+  // motor definitions
+  Motor drive_left_front(DLF_PORT, DLF_REV, BLUE, DEGREES);
+  Motor drive_right_front(DRF_PORT, DRF_REV, BLUE, DEGREES);
+  Motor drive_left_back(DLB_PORT, DLB_REV, BLUE, DEGREES);
+  Motor drive_right_back(DRB_PORT, DRB_REV, BLUE, DEGREES);
   while (true) {
-    double ly = -masterController.getAnalog(ControllerAnalog::leftY) * 600;
-    double lx = -masterController.getAnalog(ControllerAnalog::leftX) * 600;
-    double rx = -masterController.getAnalog(ControllerAnalog::rightX) * 600;
+    double ly = masterController.getAnalog(ControllerAnalog::leftY) * 600;
+    double lx = masterController.getAnalog(ControllerAnalog::leftX) * 600;
+    double rx = masterController.getAnalog(ControllerAnalog::rightX) * 600;
 
     drive_right_front.moveVelocity(ly - rx - lx);
     drive_right_back.moveVelocity(ly - rx + lx);
@@ -269,7 +269,7 @@ void setTarget(double t, double m) {
 
 void controlTilt(void *) {
   double error;
-  double kP = 0.25;
+  double kP = 0.5;
   double potVal;
   while (true) {
     if (target == -1) {
@@ -309,9 +309,11 @@ namespace roll {
 const int speed = 200;
 double targetSpeed = 0;
 int toggle = 1;
+int brakeToggle = 1;
 ControllerButton roll(BTN_ROLL_TOGGLE);
 ControllerButton rollIn(BTN_ROLL_IN);
 ControllerButton rollOut(BTN_ROLL_OUT);
+ControllerButton rollCoast(BTN_ROLL_COAST);
 MotorGroup roll_group({boolToSign(ROLLL_REV) * ROLLL_PORT,
                        boolToSign(ROLLR_REV) * ROLLR_PORT});
 
@@ -322,6 +324,12 @@ void controlRoll() {
       targetSpeed = speed;
     else
       targetSpeed = 0;
+  } else if (rollCoast.changedToPressed()) {
+    brakeToggle++;
+    if (brakeToggle % 2 == 0)
+      roll_group.setBrakeMode(AbstractMotor::brakeMode::coast);
+    else
+      roll_group.setBrakeMode(AbstractMotor::brakeMode::hold);
   } else if (rollIn.changedToPressed())
     targetSpeed = speed;
   else if (rollOut.changedToPressed())
@@ -340,8 +348,8 @@ namespace macros {
 ControllerButton btnStack(BTN_MACRO_STACK);
 
 void stack() {
-  roll::targetSpeed = -40;
-  tiltP::setTarget(tiltP::heights::up, 0.5);
+  roll::targetSpeed = 0;
+  tiltP::setTarget(tiltP::heights::up, 0.3);
 }
 
 void controlMacros() {
@@ -391,6 +399,8 @@ void autonomous() {
 }
 
 void opcontrol() {
+
+  tiltP::motor.setBrakeMode(AbstractMotor::brakeMode::hold);
   pros::Task taskDrive(drivetrain::controlDrive);
   pros::Task taskTilt(tiltP::controlTilt);
   roll::roll_group.setBrakeMode(AbstractMotor::brakeMode::hold);
