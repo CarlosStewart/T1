@@ -136,28 +136,6 @@ void disabled() {}
  */
 void competition_initialize() {}
 
-void autonomous() {
-  // sets up chassis for easy drivetrain control in autonomous
-  auto drive = ChassisControllerFactory::create(
-      {boolToSign(DLF_REV) * DLF_PORT, boolToSign(DLB_REV) * DLB_PORT},
-      {boolToSign(DRF_REV) * DRF_PORT, boolToSign(DRB_REV) * DRB_PORT},
-      IterativePosPIDController::Gains{0.002, 0.000001, 0.000050}, // forward
-      IterativePosPIDController::Gains{0.002, 0.000001, 0.000050}, // straight
-      IterativePosPIDController::Gains{0.002, 0.000001, 0.000050}, // turn
-      BLUE * (36.0 / 84.0),
-      {-6230, 35.5}); //{motor deg to m, motor deg to bot deg}
-  auto driveController = AsyncControllerFactory::motionProfile(
-      1.0,    // Maximum linear velocity of the Chassis in m/s
-      2.0,    // Maximum linear acceleration of the Chassis in m/s/s
-      10.0,   // Maximum linear jerk of the Chassis in m/s/s/s
-      drive); // Chassis Controller
-
-  // FOR TESTING ONLY
-  // drive.moveDistance(48_in);
-  // drive.turnAngle(360_deg);
-  driveController.moveTo({Point{0_ft, 0_ft, 0_deg}, Point{-3_ft, 0_ft, 0_deg}});
-}
-
 /////////////////////////////////////////
 //          Drivetrain Control         //
 /////////////////////////////////////////
@@ -293,7 +271,6 @@ void controlTilt(void *) {
   double error;
   double kP = 0.25;
   double potVal;
-  motor.setBrakeMode(AbstractMotor::brakeMode::hold);
   while (true) {
     if (target == -1) {
       motor.moveVelocity(0);
@@ -373,6 +350,45 @@ void controlMacros() {
   }
 }
 } // namespace macros
+
+void autonomous() {
+  // sets up chassis for easy drivetrain control in autonomous
+  auto drive = ChassisControllerFactory::create(
+      {boolToSign(DLF_REV) * DLF_PORT, boolToSign(DLB_REV) * DLB_PORT},
+      {boolToSign(DRF_REV) * DRF_PORT, boolToSign(DRB_REV) * DRB_PORT},
+      IterativePosPIDController::Gains{0.002, 0.000001, 0.000050}, // forward
+      IterativePosPIDController::Gains{0.002, 0.000001, 0.000050}, // straight
+      IterativePosPIDController::Gains{0.002, 0.000001, 0.000050}, // turn
+      BLUE * (36.0 / 84.0),
+      {6230, 35.5}); //{motor deg to m, motor deg to bot deg}
+  auto driveController = AsyncControllerFactory::motionProfile(
+      0.7116064, // Maximum linear velocity of the Chassis in m/s
+      2.0,       // Maximum linear acceleration of the Chassis in m/s/s
+      10.0,      // Maximum linear jerk of the Chassis in m/s/s/s
+      drive);    // Chassis Controller
+
+  // FOR TESTING ONLY
+  // drive.moveDistance(48_in);
+  // drive.turnAngle(360_deg);
+  // driveController.moveTo({Point{0_ft, 0_ft, 0_deg}, Point{-3_ft, 0_ft,
+  // 0_deg}});
+
+  tiltP::motor.setBrakeMode(AbstractMotor::brakeMode::hold);
+  tiltP::motor.moveVelocity(-200);
+  pros::delay(500);
+  roll::roll_group.moveVelocity(-200);
+  pros::delay(700);
+  roll::roll_group.moveVelocity(200);
+  tiltP::motor.moveVelocity(200);
+  pros::delay(800);
+  drive.setMaxVelocity(300);
+  drive.moveDistanceAsync(-4_ft);
+  pros::delay(400);
+  tiltP::motor.moveVelocity(0);
+  drive.waitUntilSettled();
+  driveController.moveTo(
+      {Point{0_ft, 0_ft, 0_deg}, Point{2_ft, 2.5_ft, 8_deg}});
+}
 
 void opcontrol() {
   pros::Task taskDrive(drivetrain::controlDrive);
