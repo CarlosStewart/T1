@@ -140,23 +140,30 @@ void competition_initialize() {}
 //          Drivetrain Control         //
 /////////////////////////////////////////
 namespace drivetrain {
-// motor definitions
-Motor drive_left_front(DLF_PORT, DLF_REV, BLUE, DEGREES);
-Motor drive_right_front(DRF_PORT, DRF_REV, BLUE, DEGREES);
-Motor drive_left_back(DLB_PORT, DLB_REV, BLUE, DEGREES);
-Motor drive_right_back(DRB_PORT, DRB_REV, BLUE, DEGREES);
+double multiplier = 1;
+ControllerButton btnToggle(BTN_TILT_MID);
 
 // control function that is run in a separate thread to prevent interruptions
 void controlDrive(void *) {
+  // motor definitions
+  Motor drive_left_front(DLF_PORT, DLF_REV, BLUE, DEGREES);
+  Motor drive_right_front(DRF_PORT, DRF_REV, BLUE, DEGREES);
+  Motor drive_left_back(DLB_PORT, DLB_REV, BLUE, DEGREES);
+  Motor drive_right_back(DRB_PORT, DRB_REV, BLUE, DEGREES);
   while (true) {
     double ly = masterController.getAnalog(ControllerAnalog::leftY) * 600;
     double lx = masterController.getAnalog(ControllerAnalog::leftX) * 600;
     double rx = masterController.getAnalog(ControllerAnalog::rightX) * 600;
 
-    drive_right_front.moveVelocity(ly - rx - lx);
-    drive_right_back.moveVelocity(ly - rx + lx);
-    drive_left_front.moveVelocity(ly + rx + lx);
-    drive_left_back.moveVelocity(ly + rx - lx);
+    if (btnToggle.changedToPressed()){
+      multiplier = multiplier == 1 ? 0.25 : 1;
+    }
+
+
+    drive_right_front.moveVelocity((ly - rx - lx) * multiplier);
+    drive_right_back.moveVelocity((ly - rx + lx) * multiplier);
+    drive_left_front.moveVelocity((ly + rx + lx) * multiplier);
+    drive_left_back.moveVelocity((ly + rx - lx) * multiplier);
     pros::delay(10);
   }
 }
@@ -256,7 +263,7 @@ double modifier;
 ControllerButton btnUp(BTN_TILT_UP);
 ControllerButton btnDown(BTN_TILT_DOWN);
 ControllerButton btnLow(BTN_TILT_LOW);
-ControllerButton btnMed(BTN_TILT_MID);
+//ControllerButton btnMed(BTN_TILT_MID);
 ControllerButton btnHigh(BTN_TILT_HIGH);
 
 Potentiometer pot(TP_PORT);
@@ -269,9 +276,8 @@ void setTarget(double t, double m) {
 
 void controlTilt(void *) {
   double error;
-  double kP = 0.25;
+  double kP = 0.5;
   double potVal;
-  motor.setBrakeMode(AbstractMotor::brakeMode::hold);
   while (true) {
     if (target == -1) {
       motor.moveVelocity(0);
@@ -291,13 +297,15 @@ void controlTarget() {
     setTarget(heights::down, 1);
   } else if (btnLow.changedToPressed()) {
     setTarget(heights::low, 1);
-  } else if (btnMed.changedToPressed()) {
-    setTarget(heights::high, 1);
+  // }
+  // else if (btnMed.changedToPressed()) {
+  //   setTarget(heights::high, 1);
   } else if (btnHigh.changedToPressed()) {
     setTarget(heights::high, 1);
   } else if (btnUp.changedToReleased() || btnDown.changedToReleased() ||
-             btnLow.changedToReleased() || btnMed.changedToReleased() ||
-             btnHigh.changedToReleased()) {
+             btnLow.changedToReleased() || btnHigh.changedToReleased()
+           //btnMed.changedToReleased()
+         ) {
     target = -1;
   }
 }
@@ -310,9 +318,11 @@ namespace roll {
 const int speed = 200;
 double targetSpeed = 0;
 int toggle = 1;
+int brakeToggle = 1;
 ControllerButton roll(BTN_ROLL_TOGGLE);
 ControllerButton rollIn(BTN_ROLL_IN);
 ControllerButton rollOut(BTN_ROLL_OUT);
+ControllerButton rollCoast(BTN_ROLL_COAST);
 MotorGroup roll_group({boolToSign(ROLLL_REV) * ROLLL_PORT,
                        boolToSign(ROLLR_REV) * ROLLR_PORT});
 
@@ -323,6 +333,12 @@ void controlRoll() {
       targetSpeed = speed;
     else
       targetSpeed = 0;
+  } else if (rollCoast.changedToPressed()) {
+    brakeToggle++;
+    if (brakeToggle % 2 == 0)
+      roll_group.setBrakeMode(AbstractMotor::brakeMode::coast);
+    else
+      roll_group.setBrakeMode(AbstractMotor::brakeMode::hold);
   } else if (rollIn.changedToPressed())
     targetSpeed = speed;
   else if (rollOut.changedToPressed())
@@ -341,8 +357,11 @@ namespace macros {
 ControllerButton btnStack(BTN_MACRO_STACK);
 
 void stack() {
-  roll::targetSpeed = -40;
-  tiltP::setTarget(tiltP::heights::up, 0.5);
+  if (roll::brakeToggle % 2 == 1)
+    roll::brakeToggle++;
+  roll::roll_group.setBrakeMode(AbstractMotor::brakeMode::coast);
+  roll::targetSpeed = 0;
+  tiltP::setTarget(tiltP::heights::up, 0.3);
 }
 
 void controlMacros() {
@@ -352,11 +371,65 @@ void controlMacros() {
 }
 } // namespace macros
 
+void autonomous() {
+  // sets up chassis for easy drivetrain control in autonomous
+  auto drive = ChassisControllerFactory::create(
+      {boolToSign(DLF_REV) * DLF_PORT, boolToSign(DLB_REV) * DLB_PORT},
+      {boolToSign(DRF_REV) * DRF_PORT, boolToSign(DRB_REV) * DRB_PORT},
+      IterativePosPIDController::Gains{0.002, 0.000001, 0.000050}, // forward
+      IterativePosPIDController::Gains{0.002, 0.000001, 0.000050}, // straight
+      IterativePosPIDController::Gains{0.002, 0.000001, 0.000050}, // turn
+      BLUE * (36.0 / 84.0),
+      {6230, 35.5}); //{motor deg to m, motor deg to bot deg}
+  auto driveController = AsyncControllerFactory::motionProfile(
+      0.7116064, // Maximum linear velocity of the Chassis in m/s
+      2.0,       // Maximum linear acceleration of the Chassis in m/s/s
+      10.0,      // Maximum linear jerk of the Chassis in m/s/s/s
+      drive);    // Chassis Controller
+
+  // FOR TESTING ONLY
+  // drive.moveDistance(48_in);
+  // drive.turnAngle(360_deg);
+  // driveController.moveTo({Point{0_ft, 0_ft, 0_deg}, Point{-3_ft, 0_ft,
+  // 0_deg}});
+
+  tiltP::motor.setBrakeMode(AbstractMotor::brakeMode::hold);
+  roll::roll_group.moveVelocity(-200);
+  pros::delay(500);
+  tiltP::motor.moveVelocity(-200);
+  pros::delay(1300);
+  roll::roll_group.setBrakeMode(AbstractMotor::brakeMode::coast);
+  roll::roll_group.moveVelocity(0);
+  tiltP::motor.moveVelocity(200);
+  pros::delay(800);
+  drive.setMaxVelocity(300);
+  drive.moveDistanceAsync(-4_ft);
+  pros::delay(400);
+  tiltP::motor.moveVelocity(0);
+  drive.waitUntilSettled();
+  drive.moveDistance(4_ft);
+  drive.turnAngle(90_deg);
+  pros::delay(5000);
+  drive.moveDistance(3_ft);
+  // driveController.moveTo(
+  //     {Point{0_ft, 0_ft, 0_deg}, Point{2_ft, 2.5_ft, 8_deg}});
+}
+
 void opcontrol() {
+  masterController.clear();
+  tiltP::motor.setBrakeMode(AbstractMotor::brakeMode::hold);
   pros::Task taskDrive(drivetrain::controlDrive);
   pros::Task taskTilt(tiltP::controlTilt);
   roll::roll_group.setBrakeMode(AbstractMotor::brakeMode::hold);
+  int last = 0;
   while (true) {
+    if (roll::brakeToggle != last){
+      if (roll::brakeToggle % 2 == 0)
+        masterController.setText(0, 0, "PID : OFF");
+      else
+        masterController.setText(0, 0, "PID : ON ");
+    }
+    last = roll::brakeToggle;
     tiltP::controlTarget();
     macros::controlMacros();
     roll::controlRoll();

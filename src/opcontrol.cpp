@@ -140,6 +140,8 @@ void competition_initialize() {}
 //          Drivetrain Control         //
 /////////////////////////////////////////
 namespace drivetrain {
+double multiplier = 1;
+ControllerButton btnToggle(BTN_TILT_MID);
 
 // control function that is run in a separate thread to prevent interruptions
 void controlDrive(void *) {
@@ -153,10 +155,15 @@ void controlDrive(void *) {
     double lx = masterController.getAnalog(ControllerAnalog::leftX) * 600;
     double rx = masterController.getAnalog(ControllerAnalog::rightX) * 600;
 
-    drive_right_front.moveVelocity(ly - rx - lx);
-    drive_right_back.moveVelocity(ly - rx + lx);
-    drive_left_front.moveVelocity(ly + rx + lx);
-    drive_left_back.moveVelocity(ly + rx - lx);
+    if (btnToggle.changedToPressed()){
+      multiplier = multiplier == 1 ? 0.25 : 1;
+    }
+
+
+    drive_right_front.moveVelocity((ly - rx - lx) * multiplier);
+    drive_right_back.moveVelocity((ly - rx + lx) * multiplier);
+    drive_left_front.moveVelocity((ly + rx + lx) * multiplier);
+    drive_left_back.moveVelocity((ly + rx - lx) * multiplier);
     pros::delay(10);
   }
 }
@@ -256,7 +263,7 @@ double modifier;
 ControllerButton btnUp(BTN_TILT_UP);
 ControllerButton btnDown(BTN_TILT_DOWN);
 ControllerButton btnLow(BTN_TILT_LOW);
-ControllerButton btnMed(BTN_TILT_MID);
+//ControllerButton btnMed(BTN_TILT_MID);
 ControllerButton btnHigh(BTN_TILT_HIGH);
 
 Potentiometer pot(TP_PORT);
@@ -290,13 +297,15 @@ void controlTarget() {
     setTarget(heights::down, 1);
   } else if (btnLow.changedToPressed()) {
     setTarget(heights::low, 1);
-  } else if (btnMed.changedToPressed()) {
-    setTarget(heights::high, 1);
+  // }
+  // else if (btnMed.changedToPressed()) {
+  //   setTarget(heights::high, 1);
   } else if (btnHigh.changedToPressed()) {
     setTarget(heights::high, 1);
   } else if (btnUp.changedToReleased() || btnDown.changedToReleased() ||
-             btnLow.changedToReleased() || btnMed.changedToReleased() ||
-             btnHigh.changedToReleased()) {
+             btnLow.changedToReleased() || btnHigh.changedToReleased()
+           //btnMed.changedToReleased()
+         ) {
     target = -1;
   }
 }
@@ -348,6 +357,9 @@ namespace macros {
 ControllerButton btnStack(BTN_MACRO_STACK);
 
 void stack() {
+  if (roll::brakeToggle % 2 == 1)
+    roll::brakeToggle++;
+  roll::roll_group.setBrakeMode(AbstractMotor::brakeMode::coast);
   roll::targetSpeed = 0;
   tiltP::setTarget(tiltP::heights::up, 0.3);
 }
@@ -382,11 +394,12 @@ void autonomous() {
   // 0_deg}});
 
   tiltP::motor.setBrakeMode(AbstractMotor::brakeMode::hold);
-  tiltP::motor.moveVelocity(-200);
-  pros::delay(500);
   roll::roll_group.moveVelocity(-200);
-  pros::delay(700);
-  roll::roll_group.moveVelocity(200);
+  pros::delay(500);
+  tiltP::motor.moveVelocity(-200);
+  pros::delay(1300);
+  roll::roll_group.setBrakeMode(AbstractMotor::brakeMode::coast);
+  roll::roll_group.moveVelocity(0);
   tiltP::motor.moveVelocity(200);
   pros::delay(800);
   drive.setMaxVelocity(300);
@@ -394,17 +407,29 @@ void autonomous() {
   pros::delay(400);
   tiltP::motor.moveVelocity(0);
   drive.waitUntilSettled();
-  driveController.moveTo(
-      {Point{0_ft, 0_ft, 0_deg}, Point{2_ft, 2.5_ft, 8_deg}});
+  drive.moveDistance(4_ft);
+  drive.turnAngle(90_deg);
+  pros::delay(5000);
+  drive.moveDistance(3_ft);
+  // driveController.moveTo(
+  //     {Point{0_ft, 0_ft, 0_deg}, Point{2_ft, 2.5_ft, 8_deg}});
 }
 
 void opcontrol() {
-
+  masterController.clear();
   tiltP::motor.setBrakeMode(AbstractMotor::brakeMode::hold);
   pros::Task taskDrive(drivetrain::controlDrive);
   pros::Task taskTilt(tiltP::controlTilt);
   roll::roll_group.setBrakeMode(AbstractMotor::brakeMode::hold);
+  int last = 0;
   while (true) {
+    if (roll::brakeToggle != last){
+      if (roll::brakeToggle % 2 == 0)
+        masterController.setText(0, 0, "PID : OFF");
+      else
+        masterController.setText(0, 0, "PID : ON ");
+    }
+    last = roll::brakeToggle;
     tiltP::controlTarget();
     macros::controlMacros();
     roll::controlRoll();
