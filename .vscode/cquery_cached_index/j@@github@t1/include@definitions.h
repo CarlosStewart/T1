@@ -8,7 +8,7 @@
 
 // MOTORS
 ////////////////
-const int DLF_PORT = 20;
+const int DLF_PORT = 18;
 const bool DLF_REV = true;
 
 const int DRF_PORT = 2;
@@ -25,7 +25,7 @@ const int TILT_PORT = 3;
 const bool TILT_REV = true;
 
 ////////////////
-const int ROLLL_PORT = 19;
+const int ROLLL_PORT = 20;
 const bool ROLLL_REV = true;
 
 const int ROLLR_PORT = 12;
